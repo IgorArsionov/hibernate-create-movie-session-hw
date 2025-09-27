@@ -67,7 +67,9 @@ public class MovieSessionDaoImpl implements MovieSessionDao {
             movieSessionQuery.setParameter("endOfDay", end);
             return movieSessionQuery.list();
         } catch (Exception e) {
-            throw new DataProcessingException("Can't get available movie sessions for movieId=" + movieId + ", between " + start + " and " + end, e);
+            throw new DataProcessingException(
+                    "Can't get available movie sessions for movieId="
+                    + movieId + ", between " + start + " and " + end, e);
         }
     }
 }
