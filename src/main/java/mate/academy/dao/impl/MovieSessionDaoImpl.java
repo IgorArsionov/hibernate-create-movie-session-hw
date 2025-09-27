@@ -1,7 +1,6 @@
 package mate.academy.dao.impl;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import mate.academy.dao.MovieSessionDao;
@@ -47,26 +46,28 @@ public class MovieSessionDaoImpl implements MovieSessionDao {
                     + "where s.id = :id", MovieSession.class);
             movieSessionQuery.setParameter("id", id);
 
-            return Optional.ofNullable(movieSessionQuery.getSingleResult());
+            return movieSessionQuery.uniqueResultOptional();
         } catch (Exception e) {
             throw new DataProcessingException("Can't select MovieSession by id: " + id, e);
         }
     }
 
     @Override
-    public List<MovieSession> findAvailableSessions(Long movieId, LocalDate date) {
+    public List<MovieSession> findAvailableSessions(
+            Long movieId, LocalDateTime start, LocalDateTime end) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Query<MovieSession> movieSessionQuery = session.createQuery("from MovieSession s "
                     + "join fetch s.movie m "
                     + "join fetch s.cinemaHall h "
                     + "where m.id = :movieId "
-                    + "and s.showTime between :startOfDay and :endOfDay", MovieSession.class);
+                    + "and s.showTime >= :startOfDay "
+                    + "and s.showTime < :endOfDay", MovieSession.class);
             movieSessionQuery.setParameter("movieId", movieId);
-            movieSessionQuery.setParameter("startOfDay", date.atStartOfDay());
-            movieSessionQuery.setParameter("endOfDay", date.atTime(LocalTime.MAX));
+            movieSessionQuery.setParameter("startOfDay", start);
+            movieSessionQuery.setParameter("endOfDay", end);
             return movieSessionQuery.list();
         } catch (Exception e) {
-            throw new DataProcessingException("Can't select Available Session by date: " + date, e);
+            throw new DataProcessingException("Can't select Available Session", e);
         }
     }
 }
